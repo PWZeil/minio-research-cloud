@@ -11,27 +11,56 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ minio_install.py completed."
 
-# Define the Nginx configuration file path
+# Define Nginx config
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
 echo "📄 Using Nginx config: $nginx_conf"
 
-# Remove root and index directives
-echo "🧹 Cleaning up root and index directives..."
+# Backup existing config
+cp "$nginx_conf" "${nginx_conf}.bak"
+echo "🗂 Backup created at ${nginx_conf}.bak"
+
+# Clean up old root and index directives
+echo "🧹 Removing old root and index directives..."
 sed -i '/root \/var\/www\/html;/d' "$nginx_conf"
 sed -i '/index index.html index.htm;/d' "$nginx_conf"
 echo "✅ Cleanup complete."
 
-# Add /admin proxy block
-echo "➕ Adding /admin location block..."
-sed -i '$a location /admin/ {\n\tproxy_pass http://localhost:8080/;\n\tproxy_set_header Host $host;\n\tproxy_set_header X-Real-IP $remote_addr;\n\tproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\tproxy_set_header X-Forwarded-Proto $scheme;\n}' "$nginx_conf"
-echo "✅ /admin block added."
+# Add /admin block
+echo "➕ Adding /admin block..."
+cat <<EOF >> "$nginx_conf"
 
-# Add /api proxy block
-echo "➕ Adding /api location block..."
-sed -i '$a location /api/ {\n\tproxy_pass http://localhost:8081/;\n\tproxy_set_header Host $host;\n\tproxy_set_header X-Real-IP $remote_addr;\n\tproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\tproxy_set_header X-Forwarded-Proto $scheme;\n}' "$nginx_conf"
-echo "✅ /api block added."
+location /admin/ {
+    proxy_pass http://localhost:8080/;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+}
+EOF
 
-# Restart nginx to apply changes
+# Add /api block
+echo "➕ Adding /api block..."
+cat <<EOF >> "$nginx_conf"
+
+location /api/ {
+    proxy_pass http://localhost:8081/;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+}
+EOF
+
+# Test nginx config
+echo "🧪 Testing nginx configuration..."
+nginx -t
+if [ $? -ne 0 ]; then
+    echo "❌ Nginx config test failed. Check ${nginx_conf} for syntax errors."
+    exit 1
+fi
+echo "✅ Nginx config is valid."
+
+# Restart nginx
 echo "🔄 Restarting nginx..."
 systemctl restart nginx.service
 if [ $? -ne 0 ]; then
