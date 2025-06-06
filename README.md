@@ -12,18 +12,18 @@ This setup is designed as a **SURF Research Cloud component** to simplify deploy
 
 * Configures Nginx to proxy requests:
 
-  * `/` routes to the MinIO API running on port `8080`
-  * `/API/` routes to the MinIO admin console running on port `8081`
+  * `/` routes to the MinIO admin console running on port `8080`
+  * `/api/` routes to the MinIO api running on port `8081`
 
 * Restarts Nginx to apply the new configuration
 
 ## Accessing MinIO
 
-* **MinIO UI (API):**
+* **MinIO Admin console:**
   Access via your server’s base URL (e.g., `http://yourdomain.com/`)
 
-* **MinIO Admin Console:**
-  Access via `http://yourdomain.com/API/`
+* **MinIO API:**
+  Access via `http://yourdomain.com/api/`
 
 
 ## Finding your MinIO credentials
