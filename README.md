@@ -2,8 +2,6 @@
 
 This setup is designed as a **SURF Research Cloud component** to simplify deploying and accessing a MinIO instance with Nginx reverse proxy integration.
 
----
-
 ## What this setup does
 
 * Runs a Python script (`minio_install.py`) to generate MinIO credentials:
@@ -19,8 +17,6 @@ This setup is designed as a **SURF Research Cloud component** to simplify deploy
 
 * Restarts Nginx to apply the new configuration
 
----
-
 ## Accessing MinIO
 
 * **MinIO UI (API):**
@@ -29,7 +25,6 @@ This setup is designed as a **SURF Research Cloud component** to simplify deploy
 * **MinIO Admin Console:**
   Access via `http://yourdomain.com/API/`
 
----
 
 ## Finding your MinIO credentials
 
