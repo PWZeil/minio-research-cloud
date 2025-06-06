@@ -24,8 +24,12 @@ sed -i '/root \/var\/www\/html;/d' "$nginx_conf"
 sed -i '/index index.html index.htm;/d' "$nginx_conf"
 echo "Old root and index directives removed."
 
-# Define the location blocks
+# Define the location blocks including redirect from / to /admin
 location_blocks=$(cat <<'EOF'
+    location = / {
+        return 302 /admin/;
+    }
+
     location /admin/ {
         proxy_pass http://localhost:8080/;
         proxy_set_header Host $host;
