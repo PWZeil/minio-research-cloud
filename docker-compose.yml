@@ -11,8 +11,8 @@ services:
     volumes:
       - minio_data:/data
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:admin}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:changeme}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-changeme}
     command: server /data --console-address ":9001"
 volumes:
   minio_data:
