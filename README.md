@@ -1,50 +1,48 @@
-# Postgresql & PgAdmin powered by compose
+# MinIO Nginx Reverse Proxy Setup (SURF Research Cloud Component)
 
+This setup is designed as a **SURF Research Cloud component** to simplify deploying and accessing a MinIO instance with Nginx reverse proxy integration.
 
-## Requirements:
-* docker >= 17.12.0+
-* docker-compose
+---
 
-## Quick Start
-* Clone or download this repository
-* Go inside of directory,  `cd compose-postgres`
-* Run this command `docker-compose up -d`
+## What this setup does
 
+* Runs a Python script (`minio_install.py`) to generate MinIO credentials:
 
-## Environments
-This Compose file contains the following environment variables:
+  * Creates a fixed MinIO username `admin`
+  * Generates a secure random password
+  * Saves these credentials in a `.env` file for your reference
 
-* `POSTGRES_USER` the default value is **postgres**
-* `POSTGRES_PASSWORD` the default value is **changeme**
-* `PGADMIN_PORT` the default value is **5050**
-* `PGADMIN_DEFAULT_EMAIL` the default value is **pgadmin4@pgadmin.org**
-* `PGADMIN_DEFAULT_PASSWORD` the default value is **admin**
+* Configures Nginx to proxy requests:
 
-## Access to postgres: 
-* `localhost:5432`
-* **Username:** postgres (as a default)
-* **Password:** changeme (as a default)
+  * `/` routes to the MinIO API running on port `8080`
+  * `/API/` routes to the MinIO admin console running on port `8081`
 
-## Access to PgAdmin: 
-* **URL:** `http://localhost:5050`
-* **Username:** pgadmin4@pgadmin.org (as a default)
-* **Password:** admin (as a default)
+* Restarts Nginx to apply the new configuration
 
-## Add a new server in PgAdmin:
-* **Host name/address** `postgres`
-* **Port** `5432`
-* **Username** as `POSTGRES_USER`, by default: `postgres`
-* **Password** as `POSTGRES_PASSWORD`, by default `changeme`
+---
 
-## Logging
+## Accessing MinIO
 
-There are no easy way to configure pgadmin log verbosity and it can be overwhelming at times. It is possible to disable pgadmin logging on the container level.
+* **MinIO UI (API):**
+  Access via your server’s base URL (e.g., `http://yourdomain.com/`)
 
-Add the following to `pgadmin` service in the `docker-compose.yml`:
+* **MinIO Admin Console:**
+  Access via `http://yourdomain.com/API/`
 
-```
-logging:
-  driver: "none"
-```
+---
 
-[reference](https://github.com/khezen/compose-postgres/pull/23/files)
+## Finding your MinIO credentials
+
+1. Use `sudo docker compose ls` to list your Docker Compose projects.
+   This shows where your components (like MinIO) were created.
+
+2. Navigate to the project directory listed by the command.
+
+3. Inside, find the `.env` file — it contains your MinIO username and password:
+
+   ```bash
+   IECON_INTELLIGENCE_MINIO_USER=admin
+   IECON_INTELLIGENCE_MINIO_PASSWORD=your_generated_password
+   ```
+
+Use these credentials to log into the MinIO UI and admin console.
