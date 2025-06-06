@@ -13,18 +13,7 @@ sed -i 's|root /var/www/html;|location / {\n    \tproxy_pass http://localhost:80
 sed -i 's|index index.html index.htm;||' "$nginx_conf"
 
 # Add /API proxy block if not present
-if ! grep -q "location /API" "$nginx_conf"; then
-cat <<EOF >> "$nginx_conf"
-
-location /API/ {
-    proxy_pass http://localhost:8081/;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-}
-EOF
-fi
+sed -i '$a location /api/ {\n\tproxy_pass http://localhost:8081/;\n\tproxy_set_header Host $host;\n\tproxy_set_header X-Real-IP $remote_addr;\n\tproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\tproxy_set_header X-Forwarded-Proto $scheme;\n}' "$nginx_conf"
 
 # Restart nginx to apply changes
 systemctl restart nginx.service
