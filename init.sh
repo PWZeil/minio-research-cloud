@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run the minio_install.py script (adjust path if needed)
-python3 /minio_install.py
+python3 minio_install.py
 
 # Define the Nginx configuration file path
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
