@@ -11,51 +11,35 @@ if [ $? -ne 0 ]; then
 fi
 echo "minio_install.py completed."
 
-# Nginx configuration file
+# Define the Nginx configuration file path
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
-echo "Using Nginx config: $nginx_conf"
 
-# Backup the current config
-cp "$nginx_conf" "${nginx_conf}.bak"
-echo "Backup created: ${nginx_conf}.bak"
-
-# Remove old root and index directives
-sed -i '/root \/var\/www\/html;/d' "$nginx_conf"
-sed -i '/index index.html index.htm;/d' "$nginx_conf"
-echo "Old root and index directives removed."
-
-# Add proxy for / to localhost:8080 if not already added
-if ! grep -q "proxy_pass http://localhost:8080" "$nginx_conf"; then
-  echo "Adding proxy for / to localhost:8080..."
-  cat <<EOF >> "$nginx_conf"
-
-location / {
-    proxy_pass http://localhost:8080;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Real-IP \$remote_addr;
+awk -v api_block='
+location /api {
+    proxy_pass http://localhost:8081;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}' '
+/root \/var\/www\/html;/ {
+    print "location / {"
+    print "    proxy_pass http://localhost:8080;"
+    print "    proxy_set_header Host $$host;"
+    print "    proxy_set_header X-Real-IP $$remote_addr;"
+    print "}"
+    print api_block
+    next
 }
-EOF
-fi
 
-# Add a new server block for api subdomain
-api_conf="/etc/nginx/conf.d/api_subdomain.conf"
-if [ ! -f "$api_conf" ]; then
-  echo "Creating new server block for api subdomain in $api_conf..."
-  cat <<EOF > "$api_conf"
-server {
-    listen 80;
-    server_name api.*;
-
-    location / {
-        proxy_pass http://localhost:8081;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
+/index index.html index.htm;/ {
+    # Skip this line to remove it
+    next
 }
-EOF
-fi
 
-# Restart Nginx to apply changes
-echo "Restarting Nginx..."
+{
+    # Print all other lines as is
+    print
+}
+' "$nginx_conf" > "${nginx_conf}.tmp" && mv "${nginx_conf}.tmp" "$nginx_conf"
+
+# Restart Nginx to apply the new config
 systemctl restart nginx.service
-echo "Nginx restarted. Setup complete."
