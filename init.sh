@@ -24,50 +24,38 @@ sed -i '/root \/var\/www\/html;/d' "$nginx_conf"
 sed -i '/index index.html index.htm;/d' "$nginx_conf"
 echo "Old root and index directives removed."
 
-# Define the location blocks including redirect from / to /admin
-location_blocks=$(cat <<'EOF'
-    location = / {
-        return 302 /admin/;
-    }
+# Add proxy for / to localhost:8080 if not already added
+if ! grep -q "proxy_pass http://localhost:8080" "$nginx_conf"; then
+  echo "Adding proxy for / to localhost:8080..."
+  cat <<EOF >> "$nginx_conf"
 
-    location /admin/ {
-        proxy_pass http://localhost:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:8081/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+location / {
+    proxy_pass http://localhost:8080;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+}
 EOF
-)
-
-# Insert location blocks before the last closing brace in the config
-sed -i "\$i $location_blocks" "$nginx_conf"
-echo "Location blocks inserted into Nginx config."
-
-# Test Nginx configuration
-echo "Testing Nginx configuration..."
-nginx -t
-if [ $? -ne 0 ]; then
-    echo "Nginx config test failed. Please check ${nginx_conf} for errors."
-    exit 1
 fi
-echo "Nginx configuration is valid."
 
-# Restart Nginx
+# Add a new server block for api subdomain
+api_conf="/etc/nginx/conf.d/api_subdomain.conf"
+if [ ! -f "$api_conf" ]; then
+  echo "Creating new server block for api subdomain in $api_conf..."
+  cat <<EOF > "$api_conf"
+server {
+    listen 80;
+    server_name api.*;
+
+    location / {
+        proxy_pass http://localhost:8081;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
+fi
+
+# Restart Nginx to apply changes
 echo "Restarting Nginx..."
 systemctl restart nginx.service
-if [ $? -ne 0 ]; then
-    echo "Failed to restart Nginx"
-    exit 1
-fi
-echo "Nginx restarted successfully."
-
-echo "Setup complete."
+echo "Nginx restarted. Setup complete."
