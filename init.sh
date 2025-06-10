@@ -14,32 +14,9 @@ echo "minio_install.py completed."
 # Define the Nginx configuration file path
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
 
-awk -v api_block='
-location /api {
-    proxy_pass http://localhost:8081;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-}' '
-/root \/var\/www\/html;/ {
-    print "location / {"
-    print "    proxy_pass http://localhost:8080;"
-    print "    proxy_set_header Host $$host;"
-    print "    proxy_set_header X-Real-IP $$remote_addr;"
-    print "}"
-    print api_block
-    next
-}
+sed -i 's|root /var/www/html;|location / {\n    \tproxy_pass http:\/\/localhost:8080;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n    }\n\n    location \/api {\n    \tproxy_pass http:\/\/localhost:8081;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n    }|' "$nginx_conf"
 
-/index index.html index.htm;/ {
-    # Skip this line to remove it
-    next
-}
-
-{
-    # Print all other lines as is
-    print
-}
-' "$nginx_conf" > "${nginx_conf}.tmp" && mv "${nginx_conf}.tmp" "$nginx_conf"
+sed -i 's|index index.html index.htm;||' "$nginx_conf"
 
 # Restart Nginx to apply the new config
 systemctl restart nginx.service
