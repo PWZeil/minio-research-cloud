@@ -13,7 +13,7 @@ sed -i 's|index index.html index.htm;||' "$nginx_conf"
 systemctl restart nginx.service
 
 # Extract domain from NGINX config (first matching server_name)
-server_name=$(grep -oP 'server_name\s+\K\S+' "$nginx_conf" | head -n1)
+server_name=$(grep -oP 'server_name\s+\K[^;]+' "$nginx_conf" | head -n1)
 
 # Build the redirect URL for MinIO Console
 minio_url="https://${server_name}/console/"
