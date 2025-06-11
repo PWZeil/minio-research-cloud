@@ -49,7 +49,6 @@ This guide explains how to set up **per-group S3 buckets in MinIO** for your stu
  MinIO Admin Console: [https://url/console](https://url/console)
  See `.env` for admin login credentials
 
----
 
 ## 1. Create a Bucket for Each Student Group
 
@@ -58,7 +57,6 @@ This guide explains how to set up **per-group S3 buckets in MinIO** for your stu
 3. Click **"Create Bucket"**, and name it clearly (e.g., `group1-dvc`, `team-rocket`, etc.)
 4. Keep access set to **Private**.
 
----
 
 ## 2. Create a Policy to Restrict Access to That Bucket
 
@@ -96,8 +94,6 @@ Use the following template and replace `BUCKET_HERE` with the actual bucket name
 
  This ensures each group **can only access their own bucket** — not others.
 
----
-
 ## 3. Create a User or Group for the Students
 
 1. Go to **Users** (or **Groups**) in the MinIO console.
@@ -110,8 +106,6 @@ Use the following template and replace `BUCKET_HERE` with the actual bucket name
 4. Share the **access key** and **secret key** with the students in that group.
 
  Once logged in, students can generate their own **additional access keys** and manage files via the MinIO UI.
-
----
 
 ##  4. How Can Students Use This?
 
@@ -128,7 +122,6 @@ With their access key (username) and secret key (password), they can:
 * Create folders
 * Generate new keys
 
----
 
 ###  **Use MinIO Bucket with DVC**
 
@@ -152,8 +145,6 @@ Replace the placeholders:
 * `BUCKET_HERE` → the name of their assigned bucket
 * `KEY_NAME_HERE` → their access key (username)
 * `KEY_PASSWORD_HERE` → their secret key (password)
-
----
 
 ## Example Workflow for Students
 
