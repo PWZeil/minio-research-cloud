@@ -12,18 +12,18 @@ This setup is designed as a **SURF Research Cloud component** to simplify deploy
 
 * Configures Nginx to proxy requests:
 
-  * `/` routes to the MinIO admin console running on port `8080`
-  * `/api/` routes to the MinIO api running on port `8081`
+  * `/console` routes to the MinIO admin console running on port `9090`
+  * `/api` routes to the MinIO api running on port `9000`
 
 * Restarts Nginx to apply the new configuration
 
 ## Accessing MinIO
 
 * **MinIO Admin console:**
-  Access via your server’s base URL (e.g., `http://yourdomain.com/`)
+  Access via your server’s base URL (e.g., `https://yourdomain.com/`)
 
 * **MinIO API:**
-  Access via `http://yourdomain.com/api/`
+  Access via `https://yourdomain.com/api/`
 
 
 ## Finding your MinIO credentials
@@ -36,8 +36,8 @@ This setup is designed as a **SURF Research Cloud component** to simplify deploy
 3. Inside, find the `.env` file — it contains your MinIO username and password:
 
    ```bash
-   IECON_INTELLIGENCE_MINIO_USER=admin
-   IECON_INTELLIGENCE_MINIO_PASSWORD=your_generated_password
+   MINIO_ROOT_USER=admin
+   MINIO_ROOT_PASSWORD=your_generated_password
    ```
 
 Use these credentials to log into the MinIO UI and admin console.
