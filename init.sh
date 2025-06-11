@@ -6,7 +6,7 @@ echo "Starting setup..."
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
 
 # Modify the nginx config
-sed -i 's|root /var/www/html;|location /console/ {\n    \tproxy_pass http:\/\/localhost:9090/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n    }\n\n    location \/api/ {\n    \tproxy_pass http:\/\/localhost:9000/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n    }|' "$nginx_conf"
+sed -i 's|root /var/www/html;|location = / {\n    \treturn 301 /console/;\n}\n\nlocation /console/ {\n    \tproxy_pass http:\/\/localhost:9090/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n}\n\nlocation \/api/ {\n    \tproxy_pass http:\/\/localhost:9000/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n}|' "$nginx_conf"
 sed -i 's|index index.html index.htm;||' "$nginx_conf"
 
 # Restart Nginx
