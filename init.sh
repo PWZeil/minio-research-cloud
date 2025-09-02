@@ -5,12 +5,50 @@ echo "Starting setup..."
 # Define the Nginx configuration file path
 nginx_conf="/etc/nginx/conf.d/ssl_main.conf"
 
-# Modify the nginx config
-sed -i 's|root /var/www/html;|location = / {\n    \treturn 301 /console/;\n}\n\nlocation /console/ {\n    \tproxy_pass http:\/\/localhost:9090/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n}\n\nlocation \/api/ {\n    \tproxy_pass http:\/\/localhost:9000/;\n    \tproxy_set_header Host $host;\n    \tproxy_set_header X-Real-IP $remote_addr;\n}|' "$nginx_conf"
-sed -i 's|index index.html index.htm;||' "$nginx_conf"
+# Backup the original config first
+cp "$nginx_conf" "${nginx_conf}.bak"
 
-# Restart Nginx
-systemctl restart nginx.service
+# Add proxy settings for /console/ with WebSocket support
+sed -i '/location \/console\//,/}/c\
+location /console/ {\
+    proxy_pass http://localhost:9090/;\
+    proxy_set_header Host $host;\
+    proxy_set_header X-Real-IP $remote_addr;\
+    real_ip_header X-Real-IP;\
+    proxy_connect_timeout 300;\
+    proxy_buffering off;\
+    proxy_request_buffering off;\
+    proxy_http_version 1.1;\
+    proxy_set_header Upgrade $http_upgrade;\
+    proxy_set_header Connection "upgrade";\
+}' "$nginx_conf"
+
+# Add proxy settings for /api/ with WebSocket support
+sed -i '/location \/api\//,/}/c\
+location /api/ {\
+    proxy_pass http://localhost:9000/;\
+    proxy_set_header Host $host;\
+    proxy_set_header X-Real-IP $remote_addr;\
+    real_ip_header X-Real-IP;\
+    proxy_connect_timeout 300;\
+    proxy_buffering off;\
+    proxy_request_buffering off;\
+    proxy_http_version 1.1;\
+    proxy_set_header Upgrade $http_upgrade;\
+    proxy_set_header Connection "upgrade";\
+}' "$nginx_conf"
+
+# Test Nginx configuration
+echo "Testing Nginx configuration..."
+nginx -t
+if [ $? -ne 0 ]; then
+    echo "Nginx configuration test failed. Aborting."
+    exit 1
+fi
+
+# Reload Nginx safely
+echo "Reloading Nginx..."
+systemctl reload nginx.service
 
 # Extract domain from NGINX config (first matching server_name)
 server_name=$(grep -oP 'server_name\s+\K[^;]+' "$nginx_conf" | head -n1)
@@ -27,4 +65,5 @@ if [ $? -ne 0 ]; then
     echo "Failed to run minio_install.py"
     exit 1
 fi
+
 echo "minio_install.py completed."
