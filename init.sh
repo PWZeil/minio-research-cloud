@@ -23,19 +23,20 @@ location /console/ {\
     proxy_set_header Connection "upgrade";\
 }' "$nginx_conf"
 
-# Add proxy settings for /api/ with WebSocket support
+# Add proxy settings for root / (S3 API) with WebSocket support
+# This replaces the old /api/ block
 sed -i '/location \/api\//,/}/c\
-location /api/ {\
+location / {\
     proxy_pass http://localhost:9000/;\
     proxy_set_header Host $host;\
     proxy_set_header X-Real-IP $remote_addr;\
-    real_ip_header X-Real-IP;\
     proxy_connect_timeout 300;\
     proxy_buffering off;\
     proxy_request_buffering off;\
     proxy_http_version 1.1;\
     proxy_set_header Upgrade $http_upgrade;\
     proxy_set_header Connection "upgrade";\
+    proxy_set_header Accept "*/*";\
 }' "$nginx_conf"
 
 # Test Nginx configuration
